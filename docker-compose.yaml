@@ -1,0 +1,76 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pipeline
+    restart: unless-stopped
+    ports:
+      - ${DOCKER_WEB_PORT-7000}:80
+    volumes:
+      - .:/usr/src/app
+    depends_on:
+      - database
+    environment:
+      MODULE_NAME: app.main
+  database:
+    image: postgres:15
+    container_name: datawarehouse
+    restart: unless-stopped
+    ports:
+      - ${DATAWAREHOUSE_PORT:-5432}:5432
+    volumes:
+      - ../app-resources-etl/data:/var/lib/postgresql/data:z
+      - ../app-resources-etl/database_backup:/home/database_backup:z
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DATAWAREHOUSE_DB:-holmes_datawarehouse}
+      POSTGRES_USER: ${DATAWAREHOUSE_USER:-fabricio}
+      POSTGRES_PASSWORD: ${DATAWAREHOUSE_PASSWORD:-admin}
+
+
+    networks:
+      - pipeline_network
+  
+  database_dev:
+    image: postgres:15
+    container_name: datawarehouse_dev
+    restart: unless-stopped
+    ports:
+      - ${DATAWAREHOUSE_PORT_DEV:-5432}:5432
+    volumes:
+      - ../app-resources-etl/data_dev:/var/lib/postgresql/data:z
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DATAWAREHOUSE_DB:-holmes_datawarehouse}
+      POSTGRES_USER: ${DATAWAREHOUSE_USER:-fabricio}
+      POSTGRES_PASSWORD: ${DATAWAREHOUSE_PASSWORD:-admin}
+  
+
+    networks:
+      - pipeline_network
+  database_test:
+    image: postgres:15
+    container_name: datawarehouse_test
+    restart: unless-stopped
+    ports:
+      - ${DATAWAREHOUSE_PORT_TEST:-5432}:5432
+    volumes:
+      - ../app-resources-etl/data_test:/var/lib/postgresql/data:z
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DATAWAREHOUSE_DB:-holmes_datawarehouse}
+      POSTGRES_USER: ${DATAWAREHOUSE_USER:-fabricio}
+      POSTGRES_PASSWORD: ${DATAWAREHOUSE_PASSWORD:-admin}
+  
+
+    networks:
+      - pipeline_network
+
+networks:
+  pipeline_network:
+    driver: bridge
+  
