@@ -1,3 +1,4 @@
 **/__pycache__/
 .pytest_cache
 .env
+app/infra/etl/rules/values_to_replace.py
