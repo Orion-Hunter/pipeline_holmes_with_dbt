@@ -483,20 +483,6 @@ cli = ["click (==8.1.7)", "pyyaml (==6.0.1)"]
 optimize = ["orjson"]
 
 [[package]]
-name = "faker"
-version = "37.4.0"
-description = "Faker is a Python package that generates fake data for you."
-optional = false
-python-versions = ">=3.9"
-files = [
-    {file = "faker-37.4.0-py3-none-any.whl", hash = "sha256:cb81c09ebe06c32a10971d1bbdb264bb0e22b59af59548f011ac4809556ce533"},
-    {file = "faker-37.4.0.tar.gz", hash = "sha256:7f69d579588c23d5ce671f3fa872654ede0e67047820255f43a4aa1925b89780"},
-]
-
-[package.dependencies]
-tzdata = "*"
-
-[[package]]
 name = "greenlet"
 version = "3.2.3"
 description = "Lightweight in-process concurrent programming"
@@ -1962,4 +1948,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "dc6ba5f9d0013d5d23a1e4186dc46a169804450b18e30d5d5e5e24b050bdf461"
+content-hash = "5ebd1fab8c2d0da97de51ac4b4a3a6f7ed919dad6e7a1414a93dbef318998b2f"
