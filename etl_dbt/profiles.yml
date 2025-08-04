@@ -1,0 +1,14 @@
+etl_dbt:
+  target: prod
+  outputs:
+    prod:
+      type: postgres
+      host: localhost             
+      user: "{{ env_var('DATAWAREHOUSE_USER') }}"          
+      password: "{{ env_var('DATAWAREHOUSE_PASSWORD') }}"    
+      port:  "{{ env_var('DATAWAREHOUSE_PORT')  | int }}"                   
+      dbname: "{{ env_var('DATAWAREHOUSE_DB') }}"   
+      schema: ""                
+      threads: 4  
+
+

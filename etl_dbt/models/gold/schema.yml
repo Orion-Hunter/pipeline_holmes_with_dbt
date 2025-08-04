@@ -1,0 +1,137 @@
+version: 2
+
+models:
+  - name: dim_empresas
+    description: "Dimension Empresas"
+    columns:
+      - name: id
+        meta:
+          type: string
+
+      - name: empresa
+        meta:
+          type: string
+
+  - name: dim_autor
+    description: "Dimension Autor"
+    columns:
+      - name: autor_id 
+        meta:
+          type: string 
+
+      - name: autor
+        meta:
+          type: string   
+      
+  - name: dim_tipo_nota
+    description: "Dimension Tipo Nota"
+    columns:
+      - name: id 
+        meta:
+          type: string 
+
+      - name: tipo     
+        meta: 
+          type: string
+
+  - name: dim_categoria_cancelamento
+    description: "Dimension Categoria Cancelamento"
+    columns:
+      - name: categoria_id 
+        meta:
+          type: string 
+
+      - name: categoria     
+        meta: 
+          type: string
+
+  - name: fat_processos
+    description: "Fact Processos"
+    columns:
+      - name: id
+        description: "The primary key for this table"
+        tests:
+          - unique
+          - not_null
+        meta:
+          type: string
+
+      - name: titulo
+        description: "Title"
+        tests:
+          - not_null
+        meta:
+          type: string
+
+      - name: autor_id
+        description: "Autor"
+        tests:
+          - not_null
+        meta:
+          type: string
+
+      - name: data_de_criacao
+        description: "Creation Date"
+        tests:
+          - not_null
+        meta:
+          type: timestamp
+
+      - name: data_conclusao
+        description: "Conclusion Date"
+        meta:
+          type: timestamp
+
+      - name: status
+        description: "Process Status"
+        tests:
+          - not_null
+        meta:
+          type: string
+
+      - name: empresa_pela_qual_a_nota_foi_emitida_id
+        description: "Empresa responsável pela emissão da nota"
+        tests:
+          - not_null
+        meta:
+          type: string
+
+      - name: empresa_solicitante_do_cancelamento_id
+        description: "Empresa que solicitou o cancelamento da nota"
+        tests:
+          - not_null
+        meta:
+          type: string
+
+      - name: categoria_do_cancelamento_id
+        description: "Categoria do cancelamento (pode ser nulo)"
+        meta:
+          type: string
+
+      - name: justificativa_da_solicitacao_de_cancelamento
+        description: "Justificativa informada para a solicitação de cancelamento"
+        tests:
+          - not_null
+        meta:
+          type: string
+
+      - name: tipo_da_nota
+        description: "Tipo da nota fiscal (ex: Veículo, Serviço, etc)"
+        tests:
+          - not_null
+        meta:
+          type: string
+
+      - name: numero_da_nota
+        description: "Número da nota fiscal"
+        tests:
+          - not_null
+        meta:
+          type: string
+
+      - name: nota_possui_boleto
+        description: "Indica se a nota possui boleto (ex: 'Sim' ou 'Não')"
+        tests:
+          - not_null
+        meta:
+          type: boolean

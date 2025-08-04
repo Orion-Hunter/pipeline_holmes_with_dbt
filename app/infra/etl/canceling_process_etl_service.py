@@ -17,7 +17,6 @@ from domain.value_objects import PipelineExecutionType, PipelinePayload, DataLay
 from dataclasses import asdict
 from infra.repositories.SQLALchemy_process_repository import SQLALchemyProcessRepository
 from infra.services.http_resources_service import HttpResourcesService
-from infra.etl.rules import TIPO_DA_NOTA, EMPRESAS
 from infra.etl.rules.values_to_replace import OLD_KEYS_ACCESS
 from infra.etl.utils.data_treatments import clean_string, safe_to_utc
 
@@ -262,16 +261,7 @@ class CancelingProcessServiceETL(ETLService):
         
 
         dataframe = pd.DataFrame(items)
-            
-       
-
-    
-        
-        dataframe['tipo_da_nota'] = dataframe['tipo_da_nota'].replace(TIPO_DA_NOTA)
-        dataframe['empresa_solicitante_do_cancelamento'] = dataframe['empresa_solicitante_do_cancelamento'].replace(EMPRESAS)
-        dataframe['empresa_pela_qual_a_nota_foi_emitida'] = dataframe['empresa_pela_qual_a_nota_foi_emitida'].replace(EMPRESAS)
-        
-         
+     
         dataframe['data_conclusao'] = dataframe['data_conclusao'].replace({pd.NaT: None})
 
         return dataframe   
