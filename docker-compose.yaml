@@ -20,8 +20,8 @@ services:
     ports:
       - ${DATAWAREHOUSE_PORT:-5432}:5432
     volumes:
-      - ../app-resources-etl/data:/var/lib/postgresql/data:z
-      - ../app-resources-etl/database_backup:/home/database_backup:z
+      - ../app-resources-etl/data:/var/lib/postgresql/data
+      - ../app-resources-etl/database_backup:/home/database_backup
     env_file:
       - .env
     environment:
@@ -29,43 +29,6 @@ services:
       POSTGRES_USER: ${DATAWAREHOUSE_USER:-fabricio}
       POSTGRES_PASSWORD: ${DATAWAREHOUSE_PASSWORD:-admin}
 
-
-    networks:
-      - pipeline_network
-  
-  database_dev:
-    image: postgres:15
-    container_name: datawarehouse_dev
-    restart: unless-stopped
-    ports:
-      - ${DATAWAREHOUSE_PORT_DEV:-5432}:5432
-    volumes:
-      - ../app-resources-etl/data_dev:/var/lib/postgresql/data:z
-    env_file:
-      - .env
-    environment:
-      POSTGRES_DB: ${DATAWAREHOUSE_DB:-holmes_datawarehouse}
-      POSTGRES_USER: ${DATAWAREHOUSE_USER:-fabricio}
-      POSTGRES_PASSWORD: ${DATAWAREHOUSE_PASSWORD:-admin}
-  
-
-    networks:
-      - pipeline_network
-  database_test:
-    image: postgres:15
-    container_name: datawarehouse_test
-    restart: unless-stopped
-    ports:
-      - ${DATAWAREHOUSE_PORT_TEST:-5432}:5432
-    volumes:
-      - ../app-resources-etl/data_test:/var/lib/postgresql/data:z
-    env_file:
-      - .env
-    environment:
-      POSTGRES_DB: ${DATAWAREHOUSE_DB:-holmes_datawarehouse}
-      POSTGRES_USER: ${DATAWAREHOUSE_USER:-fabricio}
-      POSTGRES_PASSWORD: ${DATAWAREHOUSE_PASSWORD:-admin}
-  
 
     networks:
       - pipeline_network
