@@ -3,7 +3,7 @@ import os
 import time
 import pandas as pd
 from datetime import datetime
-
+import logging
 from result import Ok, Err
 
 from data.database import AsyncDatabase
@@ -19,6 +19,7 @@ from infra.repositories.SQLALchemy_process_repository import SQLALchemyProcessRe
 from infra.services.http_resources_service import HttpResourcesService
 from infra.etl.rules.values_to_replace import OLD_KEYS_ACCESS
 from infra.etl.utils.data_treatments import clean_string, safe_to_utc
+from config.log_config import logger
 
 class CancelingProcessServiceETL(ETLService):
     def __init__(self, database: AsyncDatabase, start_date: str, end_date: str, rule: PipelineExecutionType):
@@ -94,13 +95,13 @@ class CancelingProcessServiceETL(ETLService):
     async def execute(self) -> Union[Ok, Err]:
         
         start_time = time.time()
-        
+        logger.info(f"[{datetime.now().isoformat()}] Starting pipeline: {self.__class__.__name__}")
         data = await self.extract()
         if data is None or not isinstance(data, List):
              return ExtractError(data)
         
         if len(data) == 0:
-             return f"No data extracted! There is no items to extract!"
+             return Ok("No data extracted! There is no items to extract!")
 
         data = await self.transform(data)
         if not isinstance(data, pd.DataFrame):
