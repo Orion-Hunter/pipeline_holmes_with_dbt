@@ -20,7 +20,7 @@ services:
     ports:
       - ${DATAWAREHOUSE_PORT:-5432}:5432
     volumes:
-      - ../app-resources-etl/data:/var/lib/postgresql/data
+      - ${DATAWAREHOUSE_DATA:-../app-resources-etl/data}:/var/lib/postgresql/data
       - ../app-resources-etl/database_backup:/home/database_backup
     env_file:
       - .env
@@ -29,9 +29,83 @@ services:
       POSTGRES_USER: ${DATAWAREHOUSE_USER:-fabricio}
       POSTGRES_PASSWORD: ${DATAWAREHOUSE_PASSWORD:-admin}
 
-
     networks:
       - pipeline_network
+  
+  airflow_db:
+    image: postgres:15
+    container_name: airflow_db
+    environment:
+      POSTGRES_USER: ${AIRFLOW_USER:-airflow}
+      POSTGRES_PASSWORD: ${AIRFLOW_PASS:-airflow}
+      POSTGRES_DB: ${AIRFLOW_DB:-airflow}
+    ports:
+      - "5438:5432"  
+    volumes:
+      - ${AIRFLOW_DATA:-../airflow_resources/data}:/var/lib/postgresql/data
+    env_file:
+      - .env
+    networks:
+      - pipeline_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${AIRFLOW_USER:-airflow}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  airflow-webserver:
+    build: 
+      context: .
+      dockerfile: ./docker/airflow.dockerfile
+    container_name: airflow_webserver
+    depends_on:
+      - airflow_db
+    environment:
+      AIRFLOW__CORE__EXECUTOR: ${AIRFLOW__CORE__EXECUTOR:-LocalExecutor}
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: ${AIRFLOW__DATABASE__SQL_ALCHEMY_CONN}
+      AIRFLOW__WEBSERVER__PORT: 8080
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
+      PYTHON_PATH: /opt/airflow/app
+    volumes:
+      - ./app:/opt/airflow/app
+      - ./app/dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./.env:/opt/airflow/.env
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    command: ["webserver"]  
+    networks:
+      - pipeline_network
+  
+  airflow-scheduler:
+    build: 
+      context: .
+      dockerfile: ./docker/airflow.dockerfile
+    container_name: airflow_scheduler
+    depends_on:
+      airflow-webserver:
+        condition: service_started
+      airflow_db:
+        condition: service_healthy
+    environment:
+      AIRFLOW__CORE__EXECUTOR: ${AIRFLOW__CORE__EXECUTOR:-LocalExecutor}
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN:  ${AIRFLOW__DATABASE__SQL_ALCHEMY_CONN}
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
+      PYTHONPATH: /opt/airflow/app  
+    volumes:
+      - ./app:/opt/airflow/app
+      - ./app/dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./.env:/opt/airflow/.env
+    env_file:
+      - .env
+    command: ["scheduler"]
+    restart: unless-stopped  
+    networks:
+      - pipeline_network
+  
 
 networks:
   pipeline_network:

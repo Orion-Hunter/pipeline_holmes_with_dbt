@@ -6,20 +6,20 @@ from datetime import datetime
 import logging
 from result import Ok, Err
 
-from data.database import AsyncDatabase
-from data.models.silver import Processos
-from domain.agreggates.processo import Processo
-from domain.errors import LoadError, TransformError, ExtractError
-from domain.etl_service import ETLService
+from app.data.database import AsyncDatabase
+from app.data.models.silver import Processos
+from app.domain.agreggates.processo import Processo
+from app.domain.errors import LoadError, TransformError, ExtractError
+from app.domain.etl_service import ETLService
 from httpx import Timeout
 from typing import List, Union, Any
-from domain.value_objects import PipelineExecutionType, PipelinePayload, DataLayer
+from app.domain.value_objects import PipelineExecutionType, PipelinePayload, DataLayer
 from dataclasses import asdict
-from infra.repositories.SQLALchemy_process_repository import SQLALchemyProcessRepository
-from infra.services.http_resources_service import HttpResourcesService
-from infra.etl.rules.values_to_replace import OLD_KEYS_ACCESS
-from infra.etl.utils.data_treatments import clean_string, safe_to_utc
-from config.log_config import logger
+from app.infra.repositories.SQLALchemy_process_repository import SQLALchemyProcessRepository
+from app.infra.services.http_resources_service import HttpResourcesService
+from app.infra.etl.rules.values_to_replace import OLD_KEYS_ACCESS
+from app.infra.etl.utils.data_treatments import clean_string, safe_to_utc
+from app.config.log_config import logger
 
 class CancelingProcessServiceETL(ETLService):
     def __init__(self, database: AsyncDatabase, start_date: str, end_date: str, rule: PipelineExecutionType):

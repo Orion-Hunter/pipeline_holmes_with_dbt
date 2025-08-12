@@ -3,15 +3,15 @@ from dotenv import load_dotenv
 from domain.value_objects import PipelineExecutionType
 from infra.etl.canceling_process_etl_service import CancelingProcessServiceETL
 from data.database import AsyncDatabase
-from datetime import date,datetime
+from datetime import date
 from config.log_config import logger
-from result import Ok, Err
+
 
 load_dotenv()
 database = AsyncDatabase(os.getenv('DATABASE_URL'))
 service = CancelingProcessServiceETL(database,
-                                    start_date=date(2025,8,4).strftime("%d/%m/%Y"),
-                                    end_date=date(2025,8,4).strftime("%d/%m/%Y"),
+                                    start_date=date(2024,6,1).strftime("%d/%m/%Y"),
+                                    end_date=date(2025,8,5).strftime("%d/%m/%Y"),
                                     rule=PipelineExecutionType.APPEND 
                                     )
 

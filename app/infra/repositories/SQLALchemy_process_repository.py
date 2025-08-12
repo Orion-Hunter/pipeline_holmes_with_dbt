@@ -1,8 +1,8 @@
 from datetime import date
 from typing import List
-from data.database import AsyncDatabase
-from data.models.silver import Processos
-from domain.repositories.repository import Repository
+from app.data.database import AsyncDatabase
+from app.data.models.silver import Processos
+from app.domain.repositories.repository import Repository
 from sqlalchemy import delete, and_
 
 class SQLALchemyProcessRepository(Repository):

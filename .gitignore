@@ -2,3 +2,4 @@
 .pytest_cache
 .env
 app/infra/etl/rules/values_to_replace.py
+init/init_airflow.sh

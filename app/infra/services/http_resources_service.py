@@ -5,7 +5,7 @@ import json
 import os
 from httpx import AsyncClient, Timeout
 
-from domain.value_objects import ResponsePayload
+from app.domain.value_objects import ResponsePayload
 
 
 class HttpResourcesService:

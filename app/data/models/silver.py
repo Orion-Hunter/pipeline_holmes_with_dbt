@@ -1,6 +1,6 @@
 from sqlalchemy import Column, DateTime, String, Boolean
 
-from data.base import Base
+from app.data.base import Base
 
 class Processos(Base):
     __tablename__ = "processos"
