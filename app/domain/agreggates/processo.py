@@ -18,7 +18,7 @@ class Processo:
    tipo_da_nota: str 
    numero_da_nota: str 
    nota_possui_boleto: str
-   
+   ultima_alteracao: datetime
    
    def get_dict(cls):
      return asdict(cls)
@@ -37,7 +37,8 @@ class Processo:
                 justificativa_da_solicitacao_de_cancelamento: str, 
                 tipo_da_nota: str, 
                 numero_da_nota: str, 
-                nota_possui_boleto: str
+                nota_possui_boleto: str,
+                ultima_alteracao: datetime
               ) -> "Processo":
                 
                 processo = Processo(
@@ -53,7 +54,8 @@ class Processo:
                    justificativa_da_solicitacao_de_cancelamento=justificativa_da_solicitacao_de_cancelamento, 
                    tipo_da_nota=tipo_da_nota, 
                    numero_da_nota=numero_da_nota, 
-                  nota_possui_boleto=nota_possui_boleto     
+                  nota_possui_boleto=nota_possui_boleto,
+                  ultima_alteracao=ultima_alteracao     
                 )
 
                 return processo

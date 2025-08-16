@@ -3,7 +3,6 @@ import os
 import time
 import pandas as pd
 from datetime import datetime
-import logging
 from result import Ok, Err
 
 from app.data.database import AsyncDatabase
@@ -69,8 +68,7 @@ class CancelingProcessServiceETL(ETLService):
         
 
         possui_boleto = clean_string(properties.get('nota_possui_boleto', '')) == 'Sim'
-  
-         
+      
         autor_id = raw_process['author_id']
         if autor_id not in user_cache:
             user_cache[autor_id] = await HttpResourcesService.get_user(autor_id)
@@ -80,8 +78,8 @@ class CancelingProcessServiceETL(ETLService):
                     id=raw_process['process_id'],
                     titulo=clean_string(raw_process['identifier']),
                     autor=autor,
-                    data_de_criacao = safe_to_utc(datetime.fromisoformat(raw_process['created_at'].replace('Z', '+00:00'))),
-                    data_conclusao = safe_to_utc(datetime.fromisoformat(raw_process['completed_at'].replace('Z', '+00:00'))) if raw_process['completed_at'] != None else None,
+                    data_de_criacao = safe_to_utc(raw_process['created_at']),
+                    data_conclusao = safe_to_utc(raw_process['completed_at']) if raw_process['completed_at'] != None else None,
                     status=raw_process['status'],
                     empresa_pela_qual_a_nota_foi_emitida=clean_string(properties['empresa_pela_qual_a_nota_foi_emitida']) if 'empresa_pela_qual_a_nota_foi_emitida' in properties else ' ',
                     empresa_solicitante_do_cancelamento=clean_string(properties['empresa_solicitante_do_cancelamento']) if 'empresa_solicitante_do_cancelamento' in properties else ' ',
@@ -89,7 +87,9 @@ class CancelingProcessServiceETL(ETLService):
                     justificativa_da_solicitacao_de_cancelamento=clean_string(properties['justificativa_da_solicitacao_de_cancelamento']) if 'justificativa_da_solicitacao_de_cancelamento' in properties else ' ',
                     tipo_da_nota=clean_string(properties['tipo_da_nota']) if 'tipo_da_nota' in properties else ' ',
                     numero_da_nota=clean_string(properties['numero_da_nota']) if 'numero_da_nota' in properties else ' ',
-                    nota_possui_boleto=possui_boleto)
+                    nota_possui_boleto=possui_boleto,
+                    ultima_alteracao=safe_to_utc(raw_process['updated_at'])
+                    )
         return processo
     
     async def execute(self) -> Union[Ok, Err]:
@@ -262,8 +262,9 @@ class CancelingProcessServiceETL(ETLService):
         
 
         dataframe = pd.DataFrame(items)
-     
-        dataframe['data_conclusao'] = dataframe['data_conclusao'].replace({pd.NaT: None})
-
+        dataframe['data_de_criacao'] = dataframe['data_de_criacao'].dt.tz_localize(None)
+        dataframe['data_conclusao'] = dataframe['data_conclusao'].dt.tz_localize(None)
+        dataframe['data_conclusao'] = dataframe['data_conclusao'].dt.tz_localize(None).replace({pd.NaT: None})
+        
         return dataframe   
         
