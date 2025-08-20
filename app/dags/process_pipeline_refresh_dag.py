@@ -21,6 +21,6 @@ with DAG(
     execute_process_etl(
         start_date=datetime.now().date().strftime("%d/%m/%Y"),
         end_date=datetime.now().date().strftime("%d/%m/%Y"),  
-        rule=PipelineExecutionType.APPEND
+        rule=PipelineExecutionType.REFRESH
     )
 

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, String, Boolean
+from sqlalchemy import Column, DateTime, String, Boolean, func
 
 from app.data.base import Base
 
@@ -9,8 +9,8 @@ class Processos(Base):
     id = Column(String, primary_key = True)
     titulo = Column(String)
     autor=Column(String)
-    data_de_criacao=Column(DateTime(timezone=True))
-    data_conclusao=Column(DateTime(timezone=True), nullable = True)
+    data_de_criacao=Column(DateTime(timezone=False))
+    data_conclusao=Column(DateTime(timezone=False), nullable = True)
     status=Column(String)
     empresa_pela_qual_a_nota_foi_emitida=Column(String)
     empresa_solicitante_do_cancelamento=Column(String)
@@ -19,7 +19,8 @@ class Processos(Base):
     tipo_da_nota=Column(String)
     numero_da_nota=Column(String)
     nota_possui_boleto=Column(Boolean, nullable = True)
-    
+    ultima_alteracao=Column(DateTime(timezone=False))
+
     def to_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
     

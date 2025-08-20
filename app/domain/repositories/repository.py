@@ -16,13 +16,16 @@ class Repository(ABC):
     @abstractmethod
     async def delete(self) -> None:
         ...
-    
-    @abstractmethod
-    async def get_all(self) -> List[object]:
-        ...
-    
+        
     @abstractmethod
     async def delete_by_interval(self, start_date: date, end_date: date) -> None:
         ...
     
+    @abstractmethod
+    async def get_open_process(self) -> List[Any]:
+        ...
+    
+    @abstractmethod
+    async def update(self, processo: object) -> None:
+        ...
     

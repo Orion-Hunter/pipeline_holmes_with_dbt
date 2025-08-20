@@ -1,14 +1,16 @@
 import pandas as pd 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 def clean_string(value):
       return value.replace('\n', '').replace('\t', '') if value else value
                    
 def safe_to_utc(dt):
-    if dt is None or pd.isna(dt):
-            return None
+    br_tz = ZoneInfo("America/Sao_Paulo")
+    dt = datetime.fromisoformat(dt.replace('Z', '+00:00'))
+    timestamp_result = None
     if isinstance(dt, datetime):
-        if dt.tzinfo is None:
-                return dt.replace(tzinfo=timezone.utc)
-        return dt.astimezone(timezone.utc)
-    return None 
+        timestamp_result = dt.astimezone(br_tz)
+        timestamp_result = timestamp_result.replace(microsecond=0, tzinfo=None)    
+    
+    return timestamp_result 
