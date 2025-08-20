@@ -6,6 +6,7 @@ from tasks.process_pipeline_execution import execute_process_etl
 default_args = {
     'owner': 'airflow',
     'retries': 1,
+    'retry_delay': timedelta(minutes=1)
 }
 with DAG(
         dag_id = 'process_etl_full_dag',

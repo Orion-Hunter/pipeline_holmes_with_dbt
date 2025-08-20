@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, String, Boolean
+from sqlalchemy import Column, DateTime, String, Boolean, func
 
 from app.data.base import Base
 
@@ -20,7 +20,7 @@ class Processos(Base):
     numero_da_nota=Column(String)
     nota_possui_boleto=Column(Boolean, nullable = True)
     ultima_alteracao=Column(DateTime(timezone=False))
-    
+
     def to_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
     

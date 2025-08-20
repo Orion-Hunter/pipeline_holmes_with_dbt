@@ -12,5 +12,5 @@ def safe_to_utc(dt):
     if isinstance(dt, datetime):
         timestamp_result = dt.astimezone(br_tz)
         timestamp_result = timestamp_result.replace(microsecond=0, tzinfo=None)    
-    print(timestamp_result)
+    
     return timestamp_result 
