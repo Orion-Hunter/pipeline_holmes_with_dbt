@@ -13,7 +13,7 @@ with DAG(
         description = 'Dag to ETL Process Pipeline',
         default_args = default_args,
         start_date=datetime(2024, 6, 1),
-        schedule_interval = '0 21 * * *', 
+        schedule_interval = '0 22 * * *', 
         catchup = False, 
         tags = ['process', 'etl'],
 ) as dag:
