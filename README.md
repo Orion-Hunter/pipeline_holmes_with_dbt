@@ -2,9 +2,7 @@
 
 Este projeto implementa um **pipeline de dados** utilizando **Apache Airflow** para orquestração, **dbt** para transformação de dados e **PostgreSQL** como Data Warehouse.
 
-O objetivo é organizar os dados 
-
-em camadas (Silver → Gold), permitindo análises consistentes e escaláveis.
+O objetivo é organizar os dados em camadas (Silver → Gold), permitindo análises consistentes e escaláveis. Foram usados apenas 2 camadas da Arquitetura Medalhão pois os dados já vêm da fonte estrturuados e requerem poucos tratamentos(conversões de dados, limpezas, etc) para que sejam transformados na camada Gold e disponibilizados para análise.
 
 ---
 
