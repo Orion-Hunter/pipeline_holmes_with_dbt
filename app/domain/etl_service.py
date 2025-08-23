@@ -1,24 +1,19 @@
 from abc import ABC, abstractmethod
-from typing import Dict, List, Any
+from typing import List, Any, Union
+
+import pandas as pd
 
 
 class ETLService(ABC):
     
-
-
-    
     @abstractmethod
-    async def execute(self):
+    async def extract(self, execution_rule: Any) -> Union[List[Any], None]:
         ...
     
     @abstractmethod
-    async def extract(self):
+    async def load(self, data: List[Any], execution_rule: Any) -> None:
         ...
     
     @abstractmethod
-    async def load(self, data: List[Any]):
-        ...
-    
-    @abstractmethod
-    async def transform(self, data: List[Any]):
+    async def transform(self, data: List[Any]) -> Union[pd.DataFrame, None]:
         ...

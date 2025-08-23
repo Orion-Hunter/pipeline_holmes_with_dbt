@@ -14,3 +14,11 @@ def safe_to_utc(dt):
         timestamp_result = timestamp_result.replace(microsecond=0, tzinfo=None)    
     
     return timestamp_result 
+
+
+def convert_nat_to_pydatetime(v):
+    if pd.isna(v):
+        return None 
+    elif isinstance(v, pd.Timestamp):
+       return v.to_pydatetime()     
+    return v

@@ -4,8 +4,9 @@ from dotenv import load_dotenv, dotenv_values
 from datetime import date
 from app.domain.value_objects import PipelineExecutionType   
 from app.config.log_config import logger  
+
 @task
-def execute_process_etl(start_date: date, end_date: date, rule: PipelineExecutionType):
+def process_extraction(start_date: date, end_date: date, rule: PipelineExecutionType):
     
     try: 
         load_dotenv()
@@ -21,19 +22,16 @@ def execute_process_etl(start_date: date, end_date: date, rule: PipelineExecutio
     
         async def run_etl():
             service = CancelingProcessServiceETL(
-                database,
-                start_date,
-                end_date,
-                rule
+                database
             )
 
-            res = await service.execute()
+            res = await service.extract(rule, start_date, end_date)
             return res
     
         result = asyncio.run(run_etl())
-        logger.info(f"ETL RESULT: {result}")
-       
+        logger.info(f"EXTRACTION RESULT: {result}")
+        return result 
     except Exception as e:
-        logger.error(f"ETL ERROR: {e}")
+        logger.error(f"EXTRACTION ERROR: {e}")
         raise
 
