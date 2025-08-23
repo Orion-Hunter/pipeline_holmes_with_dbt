@@ -17,26 +17,15 @@ from dataclasses import asdict
 from app.infra.repositories.SQLALchemy_process_repository import SQLALchemyProcessRepository
 from app.infra.services.http_resources_service import HttpResourcesService
 from app.infra.etl.rules.values_to_replace import OLD_KEYS_ACCESS
-from app.infra.etl.utils.data_treatments import clean_string, safe_to_utc
+from app.infra.etl.utils.data_treatments import clean_string, safe_to_utc, convert_nat_to_pydatetime
 from app.config.log_config import logger
 
 class CancelingProcessServiceETL(ETLService):
-    def __init__(self, database: AsyncDatabase, start_date: str, end_date: str, rule: PipelineExecutionType):
+    def __init__(self, database: AsyncDatabase):
         self._database = database
         self._repository = SQLALchemyProcessRepository(self._database)   
         
        
-        self.start_date = start_date
-        self.end_date = end_date
-        self.rule = rule.value
-        
-        self._payload = json.dumps(asdict(PipelinePayload(
-            etl = self.__class__.__name__,
-            start_date = start_date,
-            end_date = end_date,
-            data_layer = DataLayer.SILVER.value
-        )), default = HttpResourcesService.json_default)
-    
     
 
     
@@ -93,61 +82,36 @@ class CancelingProcessServiceETL(ETLService):
                     )
         return processo
     
-    async def execute(self) -> Union[Ok, Err]:
-        
-        start_time = time.time()
-        logger.info(f"[{datetime.now().isoformat()}] Starting pipeline: {self.__class__.__name__}")
-        data = await self.extract()
-        if data is None or not isinstance(data, List):
-             return ExtractError(data)
-        
-        if len(data) == 0:
-             return Ok("No data extracted! There is no items to extract!")
     
-        data = await self.transform(data)
-        if not isinstance(data, pd.DataFrame):
-            return TransformError(data)
-        
-        res = await self.load(data)
-        if res != None:
-            return LoadError(res)
-        
-        end_time = time.time()
-        return Ok(f'Pipeline {self.__class__.__name__} succesfull executed - Duration {end_time-start_time:.2f} seconds!')
-      
 
        
-    async def extract(self) -> Union[List[Any], None]:
-        
+    async def extract(self, execution_rule: PipelineExecutionType, start_date: str, end_date: str) -> Union[List[Any], None]:
+        try:
+            groups = [
+                    {
+                        "match_all":True,
+                        "terms": [
+                            asdict(BodyGroupTermFilter(name="Fluxos", value="64543ee0255042008f58a4a0",
+                                              type="is",filter="HProcessFilter",
+                                              field="template_id",nested=False)),
 
-        groups = [
-                {
-                    "match_all":True,
-                    "terms": [
-                        asdict(BodyGroupTermFilter(name="Fluxos", value="64543ee0255042008f58a4a0",
-                                          type="is",filter="HProcessFilter",
-                                          field="template_id",nested=False)),
-                      
-                        asdict(BodyGroupTermFilter(name="Situação", value="canceled",
-                                          type="isnot",filter="HProcessStatusFilter",
-                                          field="status",nested=False)),
-                    
-                        asdict(BodyGroupTermFilter(name="Data de criação", value=json.dumps({"from":self.start_date,
-                                                    "to":self.end_date}),
-                                          type="period",filter="HDateRange",
-                                          field="created_at",nested=False))],
-                        "not_used":False
-                }]
-     
-        
+                            asdict(BodyGroupTermFilter(name="Situação", value="canceled",
+                                              type="isnot",filter="HProcessStatusFilter",
+                                              field="status",nested=False)),
 
-        
-        if self.rule is PipelineExecutionType.REFRESH:
-          res = await self._repository.get_open_process()    
-          groups = []
-          if res:
-            for r in res:
-                group = {
+                            asdict(BodyGroupTermFilter(name="Data de criação", value=json.dumps({"from":start_date,
+                                                        "to":end_date}),
+                                              type="period",filter="HDateRange",
+                                              field="created_at",nested=False))],
+                            "not_used":False
+                    }]
+
+            if execution_rule is PipelineExecutionType.REFRESH:
+                res = await self._repository.get_open_process()    
+                groups = []
+            if res:
+                for r in res:
+                    group = {
                         "match_all":True,
                         "terms": [
                             asdict(BodyGroupTermFilter(name="Fluxos", value="64543ee0255042008f58a4a0",
@@ -160,10 +124,10 @@ class CancelingProcessServiceETL(ETLService):
                         "not_used":False
                 }
 
-                groups.append(group)
+                    groups.append(group)
 
         
-        body = {
+            body = {
             "query":{
                 "from":0,
                 "size":1000,
@@ -172,60 +136,74 @@ class CancelingProcessServiceETL(ETLService):
         }, "trash":False, "deleted_by_me":False}
          
 
-        extraction_res = await HttpResourcesService.fetch_paginated_results("https://app-api.holmesdoc.io/v2/search",
+            extraction_res = await HttpResourcesService.fetch_paginated_results("https://app-api.holmesdoc.io/v2/search",
                                                               headers = {"api_token":os.getenv('HOLMES_TOKEN'),
                                                                          "Content-Type":"application/json"},
                                                               initial_body = body,
                                                               timeout = Timeout(connect = 5.0,read = 60.0,
                                                                                 write = 60.0, pool = 5.0),
                                                               step = 200)    
-        if len(extraction_res) > 0:
-            return extraction_res   
-        elif len(extraction_res) == 0:
-            return []
+            if len(extraction_res) > 0:
+                return extraction_res   
+            elif len(extraction_res) == 0:
+                logger.info("No data extracted! There is no items to extract!")
+                return []
        
-        return None
+            return None
+        except Exception as e:
+            raise ExtractError(e)
         
         
-    async def load(self, data: pd.DataFrame) -> None:   
-        processos = []
-        for _, row in data.iterrows(): 
-            processos.append(Processos(**row.to_dict()))
+    async def load(self, data: pd.DataFrame, execution_rule: PipelineExecutionType) -> None:   
+        if data is None or len(data) == 0:
+           return None
+        
+
+
+        try:
+            processos = [
+                Processos(**{k: convert_nat_to_pydatetime(v) for k, v in row.items()})
+                for row in data.to_dict(orient="records")]
+
+                
+
+
+            if execution_rule == PipelineExecutionType.REFRESH:
+                for processo in processos:
+                    await self._repository.update(processo)
             
+            elif execution_rule == PipelineExecutionType.APPEND:
+                await self._repository.create(processos)   
 
-        if self.rule == PipelineExecutionType.BACKFILL.value:
-            await self._repository.delete_by_interval(self.start_date, self.end_date)
-            await self._repository.create(processos)   
-
-        elif self.rule == PipelineExecutionType.FULL.value: 
-            await self._repository.delete()
-            await self._repository.create(processos)
-
-        elif self.rule == PipelineExecutionType.REFRESH.value:
-            for _, row in data.iterrows():
-                await self._repository.update(Processos(**row.to_dict()))
-
-        
-
-        return None
+            elif execution_rule == PipelineExecutionType.FULL: 
+                await self._repository.delete()
+                await self._repository.create(processos)
+            logger.info(f'{len(processos)} loaded in datawarehouse!')
+            return None
+        except Exception as e:
+            raise LoadError(e)
    
         
-    async def transform(self, data: List[Any]) -> pd.DataFrame:
-          
-        items = []
+    async def transform(self, data: List[Any]) -> Union[pd.DataFrame, None]:
+        try:
+            if data is None or len(data) == 0:
+                return None
+
+
+            items = []
        
-        for raw in data:
-            try:
+            for raw in data:
                 item_transformed = await self.__transform_record(raw) 
                 items.append(item_transformed)
-            except Exception as e:
-                print(e, raw)   
+             
         
 
-        dataframe = pd.DataFrame(items)
-        dataframe['data_de_criacao'] = dataframe['data_de_criacao'].dt.tz_localize(None)
-        dataframe["data_conclusao"] = pd.to_datetime(dataframe["data_conclusao"], errors="coerce").dt.tz_localize(None)
-        dataframe['data_conclusao'] = dataframe['data_conclusao'].replace({pd.NaT: None})
-
-        return dataframe   
+            dataframe = pd.DataFrame(items)
+            dataframe['data_de_criacao'] = dataframe['data_de_criacao'].dt.tz_localize(None)
+            dataframe['data_conclusao'] = pd.to_datetime(dataframe['data_conclusao'], errors='coerce')
+            dataframe['data_conclusao'] = dataframe['data_conclusao'].dt.tz_localize(None)
+            return dataframe   
+        
+        except Exception as e:
+           raise TransformError(e)
         
